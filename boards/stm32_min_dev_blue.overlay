@@ -82,7 +82,7 @@ zephyr_udc0: &usb {
 
 	cs-gpios =  <&gpiob 12  GPIO_ACTIVE_LOW>;
 
-	sensor_air: sensor@0 {
+	pressure_sensor: sensor@0 {
 		status = "okay";
 		compatible = "us6330-015-s";
 		reg = <0>;
@@ -93,9 +93,10 @@ zephyr_udc0: &usb {
 &timers4 {
 	status = "okay";
 
-	pump_pwm: pwm {
+	pump: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim4_ch1_pwm_out_pb6 &tim4_ch2_pwm_out_pb7 &tim4_ch3_pwm_out_pb8>;
+		// pinctrl-0 = <&tim4_ch1_pwm_out_pb6 &tim4_ch2_pwm_out_pb7 &tim4_ch3_pwm_out_pb8>;
+		pinctrl-0 = <&tim4_ch2_pwm_out_pb7>;
 		pinctrl-names = "default";
 	};
 };

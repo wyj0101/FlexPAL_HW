@@ -10,15 +10,16 @@ project(FlexiAssistGlove)
 
 target_include_directories(app PRIVATE ${ZEPHYR_BASE}/include/zephyr)
 
-target_include_directories(app PRIVATE src/app/sensor)
-target_include_directories(app PRIVATE src/app/imu)
-target_include_directories(app PRIVATE src/app/dev)
+target_include_directories(app PRIVATE src/app/pressure_sensor)
+target_include_directories(app PRIVATE src/lib/imu)
+target_include_directories(app PRIVATE src/lib/pump_ctrl)
+target_include_directories(app PRIVATE src/util/logging)
 
-FILE(GLOB sensor src/app/sensor/*.c)
-FILE(GLOB imu src/app/imu/*.c)
-FILE(GLOB dev src/app/dev/*.c)
+FILE(GLOB pressure_sensor src/app/pressure_sensor/*.c)
+FILE(GLOB imu src/lib/imu/*.c)
+FILE(GLOB dev src/lib/pump_ctrl/*.c)
 
-target_sources(app PRIVATE ${sensor})
+target_sources(app PRIVATE ${pressure_sensor})
 target_sources(app PRIVATE ${imu})
 target_sources(app PRIVATE ${dev})
 target_sources(app PRIVATE src/main.c)

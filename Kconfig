@@ -1,0 +1,9 @@
+mainmenu "main kconfig menu"
+
+config PRESSURE_SENSOR_ADJUST
+	int "Pressure sensor adjust value"
+	default 100
+	help
+	  This macro represents the calibration value of the pressure sensor.
+	
+source "Kconfig.zephyr"
