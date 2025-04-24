@@ -6,8 +6,12 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/device.h>
 
-#include "pressure_sensor.h"
 #include "logging.h"
+#if CONFIG_LOG
+#include <zephyr/logging/log.h>
+#endif
+
+#include "pressure_sensor.h"
 
 LOG_MODULE_REGISTER(pressure_sensor, LOG_DEBUG);
 

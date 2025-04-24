@@ -1,0 +1,6 @@
+description: |
+    This devie is a LDC1614/LDC1612 sensor for support i2c protocol.
+
+compatible: "ti,ldc1614"
+
+include: [i2c-device.yaml]

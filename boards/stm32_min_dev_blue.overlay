@@ -71,6 +71,11 @@ zephyr_udc0: &usb {
 		reg = <0x68>;
 		status = "okay";
 	};
+	ldc: ldc1612@2a {
+		compatible = "ti,ldc1614";
+		reg = <0x2a>;
+		status = "okay";
+	};
 };
 
 

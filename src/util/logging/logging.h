@@ -9,6 +9,8 @@ enum logging_level {
     LOG_DEBUG,
 };
 
+#if (!CONFIG_LOG)
+
 typedef struct {
     const char name[16];
     enum logging_level level;
@@ -55,3 +57,5 @@ typedef struct {
             printf("\n"); \
         } \
     } while (0)
+
+#endif
