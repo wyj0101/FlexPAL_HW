@@ -44,6 +44,9 @@ zephyr_udc0: &usb {
 	aliases {
 		uart1 = &usart1;
 	};
+	chosen {
+		zephyr,code-partition = &app_partition;
+	};
 };
 
 &usart1 {
@@ -103,5 +106,27 @@ zephyr_udc0: &usb {
 		// pinctrl-0 = <&tim4_ch1_pwm_out_pb6 &tim4_ch2_pwm_out_pb7 &tim4_ch3_pwm_out_pb8>;
 		pinctrl-0 = <&tim4_ch2_pwm_out_pb7>;
 		pinctrl-names = "default";
+	};
+};
+
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* stm32f103 flash a section is 1KB !!! */
+		/* 各个flash分区必须是8k的倍数,总共64K */
+		
+		app_partition: partition@0 {
+			label = "app";
+			reg = <0x0000 DT_SIZE_K(63)>;
+		};
+
+		/* rw partition: 1KB for store data */
+		rw_partition: partition@FC00 {
+			label = "rw";
+			reg = <0xfc00 DT_SIZE_K(1)>;
+		};		
 	};
 };

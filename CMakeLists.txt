@@ -12,10 +12,13 @@ target_include_directories(app PRIVATE ${ZEPHYR_BASE}/include/zephyr)
 
 target_include_directories(app PRIVATE 
     src/app/sensor
+    src/app/uart_handle
     src/lib/imu
     src/lib/pressure_sensor
     src/lib/pump_ctrl
+    src/lib/flash_rw
     src/util/logging
+    src/util
 )
 
 

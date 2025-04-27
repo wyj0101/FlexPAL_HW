@@ -1,12 +1,3 @@
-/*
- * @Author: wang,yongjing
- * @Date: 2024-10-16 16:46:58
- * @LastEditTime: 2024-10-28 14:56:21
- * @LastEditors: wang,yongjing
- * @Description:
- * @FilePath: /temperature-control/FlexiAssistGlove/src/app/dev/pwm.c
- *
- */
 #include <string.h>
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>

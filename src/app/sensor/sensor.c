@@ -17,7 +17,7 @@
 #include "pump_ctrl.h"
 #include "sensor.h"
 
-LOG_MODULE_REGISTER(send, 4);
+LOG_MODULE_REGISTER(sensor, LOG_DEBUG);
 
 static struct k_thread sensor_handle_thread;
 static K_KERNEL_STACK_MEMBER(sensor_handle_stack, SENSOR_STACK_SIZE);

@@ -1,12 +1,3 @@
-/*
- * @Author: wang,yongjing
- * @Date: 2024-10-15 09:20:29
- * @LastEditTime: 2024-10-16 19:13:28
- * @LastEditors: wang,yongjing
- * @Description:
- * @FilePath: /temperature-control/FlexiAssistGlove/src/app/imu/imu.c
- *
- */
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 #include <string.h>

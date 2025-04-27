@@ -2,13 +2,15 @@
 
 #include <zephyr/kernel.h>
 
+#include "uart_handle.h"
+
 int main(void)
 {
-	while(1)
-	{
-		printf("welcome to zephyr\n");
-		k_sleep(K_SECONDS(1));
-	}
+	uart_thread_init();
 
+	// while (1) {
+	// 	printk("Hello, world!\n");
+	// 	k_sleep(K_MSEC(1000));
+	// }
 	return 0;
 }
