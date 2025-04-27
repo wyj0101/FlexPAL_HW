@@ -43,6 +43,7 @@ zephyr_udc0: &usb {
 
 	aliases {
 		uart1 = &usart1;
+		uart2 = &usart2;
 	};
 	chosen {
 		zephyr,code-partition = &app_partition;

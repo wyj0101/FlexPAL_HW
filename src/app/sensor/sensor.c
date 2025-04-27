@@ -22,14 +22,21 @@ LOG_MODULE_REGISTER(sensor, LOG_DEBUG);
 static struct k_thread sensor_handle_thread;
 static K_KERNEL_STACK_MEMBER(sensor_handle_stack, SENSOR_STACK_SIZE);
 
+extern float pressure_sensor_value;
 
 static void sensor_handle(void *arug0, void *arug1, void *arug2)
 {
-
+    imu_data imu_value;
+    pressure_sensor_init();
 
     while (1)
     {
-        
+        get_imu_value(&imu_value);
+        printf("pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f\n", pressure_sensor_value,
+                imu_value.acce_x, imu_value.acce_y, imu_value.acce_z,
+               imu_value.gyro_x, imu_value.gyro_y, imu_value.gyro_z,
+               imu_value.temp);
+        k_sleep(K_MSEC(300));
     }
 }
 void sensor_init()

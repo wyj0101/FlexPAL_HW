@@ -9,6 +9,7 @@
 #include "util.h"
 #include "uart_handle.h"
 #include "flash_rw.h"
+#include "esp_wifi.h"
 
 #define UART_NODE1 DT_ALIAS(uart1)
 static const struct device *const uart_dev = DEVICE_DT_GET(UART_NODE1);
@@ -26,15 +27,15 @@ static int rx_buf_pos;
 /*
  * Print a null-terminated string character by character to the UART interface
  */
-void print_uart(char *buf)
-{
-	int msg_len = strlen(buf);
+// void print_uart(char *buf)
+// {
+// 	int msg_len = strlen(buf);
 
-	for (int i = 0; i < msg_len; i++)
-	{
-		uart_poll_out(uart_dev, buf[i]);
-	}
-}
+// 	for (int i = 0; i < msg_len; i++)
+// 	{
+// 		uart_poll_out(uart_dev, buf[i]);
+// 	}
+// }
 
 /*
  * Read characters from UART until line end is detected. Afterwards push the
@@ -209,7 +210,9 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 			} else {
 				LOG_ERR("Invalid wifi sub command");
 			}
-
+		} else if (strcmp(user_cmd, "esp") == 0) {
+			esp_wifi_print_uart(user_sub_cmd);
+			printf("cmd:%s\r\n", user_sub_cmd);
 		} else if (strcmp(user_cmd, "help") == 0) {
 			LOG_INF("Available commands: net, pid, sys");
 		} else {
@@ -219,7 +222,7 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 }
 
 static struct k_thread uart_handle_thread;
-static K_KERNEL_STACK_MEMBER(uart_handle_stack, LOG_STACK_SIZE);
+static K_KERNEL_STACK_MEMBER(uart_handle_stack, SHELL_STACK_SIZE);
 
 void uart_thread_init()
 {
