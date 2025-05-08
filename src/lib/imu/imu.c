@@ -28,13 +28,13 @@ int get_imu_value(imu_data *value)
 		rc = sensor_channel_get(imu_dev, SENSOR_CHAN_DIE_TEMP, &temperature);
 	}
 	if (rc == 0) {
-		value->acce_x = sensor_value_to_float(&accel[0]);
-		value->acce_y = sensor_value_to_float(&accel[1]);
-		value->acce_z = sensor_value_to_float(&accel[2]);
-		value->gyro_x = sensor_value_to_float(&gyro[0]);
-		value->gyro_y = sensor_value_to_float(&gyro[1]);
-		value->gyro_z = sensor_value_to_float(&gyro[2]);
-		value->temp = sensor_value_to_float(&temperature);
+		value->acce_x.value = sensor_value_to_float(&accel[0]);
+		value->acce_y.value = sensor_value_to_float(&accel[1]);
+		value->acce_z.value = sensor_value_to_float(&accel[2]);
+		value->gyro_x.value = sensor_value_to_float(&gyro[0]);
+		value->gyro_y.value = sensor_value_to_float(&gyro[1]);
+		value->gyro_z.value = sensor_value_to_float(&gyro[2]);
+		value->temp.value = sensor_value_to_float(&temperature);
 	} else {
 		printf("sample fetch/get failed: %d\n", rc);
 		return rc;
