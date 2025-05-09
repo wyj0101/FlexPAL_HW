@@ -89,7 +89,7 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
         }
 
         // 经测试，最少延时7ms，6900us都不行
-        k_msleep(7);
+        k_usleep(7500);
 
         if (spi_transceive(spi_dev, &sensor_cfg, &read_cmd_set, &read_value_set) != 0) {
             LOG_ERR("Spi Read Failed!");

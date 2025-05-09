@@ -48,6 +48,9 @@ zephyr_udc0: &usb {
 	chosen {
 		zephyr,code-partition = &app_partition;
 	};
+	zephyr,user {
+		io-channels = <&adc1 4>, <&adc1 5>;
+	};
 };
 
 &usart1 {
@@ -130,4 +133,32 @@ zephyr_udc0: &usb {
 			reg = <0xfc00 DT_SIZE_K(1)>;
 		};		
 	};
+};
+
+&adc1 {
+	pinctrl-0 = <&adc1_in4_pa4 &adc1_in5_pa5>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@4 {
+		reg = <4>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+	channel@5 {
+		reg = <5>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};
+
+&gpiob {
+	status = "okay";
 };

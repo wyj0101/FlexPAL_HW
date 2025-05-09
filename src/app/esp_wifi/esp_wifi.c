@@ -11,6 +11,7 @@
 #include "flash_rw.h"
 #include "pump_ctrl.h"
 #include "sensor.h"
+#include "pid.h"
 
 static const struct device *const esp_dev = DEVICE_DT_GET(DT_ALIAS(uart2));
 
@@ -112,6 +113,7 @@ static int esp_at_wifi_init(void)
 	flash_rw_wifi_get(&wifi_config);
 	flash_rw_server_get(&server_config);
 
+	ret = esp_at_send_cmd("+++", (sizeof("+++") - 1), 1000);	// disconnect udp send
 	ret = esp_at_send_cmd("AT\r\n", sizeof("AT\r\n"), 1000);	// test at
 	ret = esp_at_send_cmd("AT+CWMODE=1\r\n", sizeof("AT+CWMODE=1\r\n"), 1000); // set wifi mode station
 	snprintf(at_buff, sizeof(at_buff), "AT+CWJAP=\"%s\",\"%s\"\r\n", wifi_config.ssid, wifi_config.password);
@@ -125,10 +127,12 @@ static int esp_at_wifi_init(void)
 	return 0;
 }
 
+extern float pressure_sensor_value;
+extern bool sensor_debug_flag;
+
 static void wifi_handle(void *arug0, void *arug1, void *arug2)
 {
 	uint8_t data_buff[WIFI_MSG_SIZE];
-	uint8_t i;
 
 	if (!device_is_ready(esp_dev)) {
 		LOG_ERR("UART device is ready!");
@@ -150,20 +154,37 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 	}
 	uart_irq_rx_enable(esp_dev);
 
+	uint8_t device_id = 0;
+	int32_t target_value = 0;
+
+    flash_rw_device_id_get(&device_id);
+
 	pump_ctrl_init();
 
-	// esp_at_wifi_init();
+	esp_at_wifi_init();
 
 	sensor_init();
 	/* indefinitely wait for input from the user */
 	while (k_msgq_get(&wifi_msgq, &data_buff, K_FOREVER) == 0)
 	{
-		for (i = 0; i < strlen(data_buff); i++)
-		{
-			printf("%c", data_buff[i]);
+		if ((data_buff[0] != 1) && (data_buff[0] != 2)) {
+			LOG_ERR("Invalid UDP data");
+			continue;
 		}
-		printf("\n");
-		memset(data_buff, 0, sizeof(data_buff));
+
+		if (data_buff[0] == 1) {
+			memcpy(&target_value, &data_buff[(1 + (device_id - 1)* 4)], sizeof(target_value));
+			pump_ctrl_set(pid_calculate_output(pressure_sensor_value, target_value, device_id));
+		} else if (data_buff[0] == 2) {
+			target_value = data_buff[(1 + (device_id - 1)* 4)];
+			pump_ctrl_set(target_value);
+		}
+
+		if (sensor_debug_flag) {
+			printf("device_id: %d, data: [%02x] [%02x] [%02x] [%02x], target_value: %d\n",
+				device_id, data_buff[(1 + (device_id - 1)* 4)], data_buff[(1 + (device_id - 1)* 4) + 1],
+				data_buff[(1 + (device_id - 1)* 4) + 2], data_buff[(1 + (device_id - 1)* 4) + 3], (uint32_t)target_value);
+		}
 	}
 }
 

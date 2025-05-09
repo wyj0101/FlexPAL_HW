@@ -31,11 +31,11 @@ int pump_ctrl_set(float value)
 	float frequency = value * 0.01;
 
 	if(frequency > 0) {
-		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_OFF);
-		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_OFF);
+		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_ON);
+		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_ON);
 	} else if(frequency < 0) {
 		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_OFF);
-		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_ON);
+		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_OFF);
 	} else {
 		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_OFF);
 		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_OFF);

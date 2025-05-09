@@ -18,6 +18,9 @@ target_include_directories(app PRIVATE
     src/lib/pressure_sensor
     src/lib/pump_ctrl
     src/lib/flash_rw
+    src/lib/adc
+    src/lib/ldc
+    src/lib/pid
     src/util/logging
     src/util
 )

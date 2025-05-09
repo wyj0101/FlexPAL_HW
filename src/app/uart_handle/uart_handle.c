@@ -10,20 +10,22 @@
 #include "uart_handle.h"
 #include "flash_rw.h"
 #include "esp_wifi.h"
+#include "pump_ctrl.h"
 
 #define UART_NODE1 DT_ALIAS(uart1)
 static const struct device *const uart_dev = DEVICE_DT_GET(UART_NODE1);
 
-LOG_MODULE_REGISTER(uart, LOG_INFO);
+LOG_MODULE_REGISTER(uart, LOG_DEBUG);
 
-#define MSG_SIZE 32
+#define MSG_SIZE 64
 /* queue to store up to 10 messages (aligned to 4-byte boundary) */
 K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 5, 4);
 
 /* receive buffer used in UART ISR callback */
-static char rx_buf[MSG_SIZE];
+static uint8_t rx_buf[MSG_SIZE];
 static int rx_buf_pos;
 
+bool sensor_debug_flag = false;
 /*
  * Print a null-terminated string character by character to the UART interface
  */
@@ -77,10 +79,10 @@ void serial_cb(const struct device *dev, void *user_data)
 
 static void uart_handle(void *arug0, void *arug1, void *arug2)
 {
-	char data_buff[MSG_SIZE];
-	char user_cmd[3];
-	char user_sub_cmd[MSG_SIZE];
-	char user_sub_action[MSG_SIZE];
+	uint8_t data_buff[MSG_SIZE];
+	uint8_t user_cmd[3];
+	uint8_t user_sub_cmd[MSG_SIZE];
+	uint8_t user_sub_action[MSG_SIZE];
 
 	if (!device_is_ready(uart_dev)) {
 		LOG_ERR("UART device is ready!");
@@ -111,6 +113,7 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 		LOG_DBG("user_cmd: %s, user_sub_cmd: %s, user_sub_action: %s", user_cmd, user_sub_cmd, user_sub_action);
 
 		if (strcmp(user_cmd, "net") == 0) {
+/*
 			if (strcmp(user_sub_cmd, "show") == 0) {
 				net_config_t net_config;
 				if (flash_rw_net_get(&net_config) == 0) {
@@ -139,6 +142,26 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 			} else {
 				LOG_ERR("Invalid net sub command");
 			}
+*/
+		} else if (strcmp(user_cmd, "server") == 0) {
+			if (strcmp(user_sub_cmd, "get") == 0) {
+				server_config_t server_config;
+				if (flash_rw_server_get(&server_config) == 0) {
+					LOG_INF("\r\n server config \r\n ipaddr: %s \r\n port: %d",
+							server_config.ipaddr, server_config.port);
+				}
+			} else if (strcmp(user_sub_cmd, "set") == 0) {
+				server_config_t server_config = {0};
+				if (sscanf(user_sub_action, "port=%u,ipaddr=%s", &server_config.port, server_config.ipaddr) == 2) {
+					if (flash_rw_server_set(&server_config) == 0) {
+						LOG_INF("Set server config success");
+					}
+				} else {
+					LOG_ERR("Invalid server set command");
+				}
+			} else {
+				LOG_ERR("Invalid server sub command");
+			}
 		} else if (strcmp(user_cmd, "pid") == 0) {
 			pid_config_t pid_config;
 
@@ -149,15 +172,15 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 				}
 			} else if (strcmp(user_sub_cmd, "set") == 0) {
 				if (sscanf(user_sub_action, "kp=%f", &pid_config.kp) == 1) {
-					if (flash_rw_pid_set(&pid_config) == 0) {
+					if (flash_rw_pid_kp_set(pid_config.kp) == 0) {
 						LOG_INF("Set kp success");
 					}
 				} else if (sscanf(user_sub_action, "ki=%f", &pid_config.ki) == 1) {
-					if (flash_rw_pid_set(&pid_config) == 0) {
+					if (flash_rw_pid_ki_set(pid_config.ki) == 0) {
 						LOG_INF("Set ki success");
 					}
 				} else if (sscanf(user_sub_action, "kd=%f", &pid_config.kd) == 1) {
-					if (flash_rw_pid_set(&pid_config) == 0) {
+					if (flash_rw_pid_kd_set(pid_config.kd) == 0) {
 						LOG_INF("Set kd success");
 					}
 				} else {
@@ -191,11 +214,11 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 			if (strcmp(user_sub_cmd, "set") == 0) {
 				wifi_config_t wifi_config;
 				if (sscanf(user_sub_action, "ssid=%s", wifi_config.ssid) == 1) {
-					if (flash_rw_wifi_set(&wifi_config) == 0) {
+					if (flash_rw_wifi_ssid_set(wifi_config.ssid) == 0) {
 						LOG_INF("Set ssid success");
 					}
 				} else if (sscanf(user_sub_action, "pw=%s", wifi_config.password) == 1) {
-					if (flash_rw_wifi_set(&wifi_config) == 0) {
+					if (falsh_rw_wifi_password_set(wifi_config.password) == 0) {
 						LOG_INF("Set password success");
 					}
 				} else {
@@ -211,13 +234,42 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 				LOG_ERR("Invalid wifi sub command");
 			}
 		} else if (strcmp(user_cmd, "esp") == 0) {
-			esp_wifi_print_uart(user_sub_cmd);
-			printf("cmd:%s\r\n", user_sub_cmd);
+			size_t len = strlen((char *)user_sub_cmd); // 获取当前字符串长度
+			if (len + 2 < sizeof(user_sub_cmd)) {      // 确保不会超出数组大小
+				user_sub_cmd[len] = '\r';              // 添加 '\r'
+				user_sub_cmd[len + 1] = '\n';          // 添加 '\n'
+				user_sub_cmd[len + 2] = '\0';          // 添加字符串终止符 '\0'
+			}
+			esp_wifi_print_uart(user_sub_cmd, strlen(user_sub_cmd));
+		} else if (strcmp(user_cmd, "pump") == 0) {
+			float value;
+			if (sscanf(user_sub_cmd, "set=%f", &value) == 1) {
+				if (pump_ctrl_set(value) == 0) {
+					LOG_INF("Set pump value success");
+				}
+			} else {
+				LOG_ERR("Invalid pump command");
+			}
+		} else if (strcmp(user_cmd, "sensor") == 0) {
+			if (strcmp(user_sub_cmd, "on") == 0) {
+				sensor_debug_flag = true;
+				LOG_INF("Sensor debug on");
+			}
+			else if (strcmp(user_sub_cmd, "off") == 0) {
+				sensor_debug_flag = false;
+				LOG_INF("Sensor debug off");
+			} else {
+				LOG_ERR("Invalid sensor command");
+			}
 		} else if (strcmp(user_cmd, "help") == 0) {
 			LOG_INF("Available commands: net, pid, sys");
 		} else {
 			LOG_ERR("Invalid command");
 		}
+		memset(data_buff, 0, sizeof(data_buff));
+		memset(user_cmd, 0, sizeof(user_cmd));
+		memset(user_sub_cmd, 0, sizeof(user_sub_cmd));
+		memset(user_sub_action, 0, sizeof(user_sub_action));
 	}
 }
 
