@@ -71,6 +71,6 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
 void sensor_init()
 {
     k_thread_create(&sensor_handle_thread, sensor_handle_stack, K_THREAD_STACK_SIZEOF(sensor_handle_stack),
-                    sensor_handle, NULL, NULL, NULL, CONFIG_MAIN_THREAD_PRIORITY, 0,
+                    sensor_handle, NULL, NULL, NULL, 15, 0,
                     K_NO_WAIT);
 }

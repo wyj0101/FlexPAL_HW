@@ -45,9 +45,14 @@ int LDC161x_read(uint8_t reg_addr, uint16_t *data)
 int LDC161x_read_4bytes(uint8_t reg_addr, uint32_t *data)
 {
     uint8_t buf[4];
+
+    while (!i2c_is_ready_dt(&ldc_dev)) {
+        LOG_ERR("I2C device is not ready\n");
+    }
+
     int ret = i2c_burst_read_dt(&ldc_dev, reg_addr, buf, sizeof(buf));
     if (ret < 0) {
-        LOG_ERR("I2C read error: %d", ret);
+        LOG_ERR("I2C read 4 bytes error: %d", ret);
         return ret;
     }
     *data = ((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]);

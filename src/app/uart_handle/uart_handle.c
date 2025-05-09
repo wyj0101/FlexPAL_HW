@@ -163,28 +163,26 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 				LOG_ERR("Invalid server sub command");
 			}
 		} else if (strcmp(user_cmd, "pid") == 0) {
-			pid_config_t pid_config;
+			pid_config_t pid_in, pid_out;
 
 			if (strcmp(user_sub_cmd, "get") == 0) {
-				if (flash_rw_pid_get(&pid_config) == 0) {
-					LOG_INF("\r\n pid config \r\n kp: %f \r\n ki: %f \r\n kd: %f",
-							pid_config.kp, pid_config.ki, pid_config.kd);
+				if (flash_rw_pid_get(&pid_in, &pid_out) == 0) {
+					LOG_INF("\r\n pid_in config \r\n kp: %f \r\n ki: %f \r\n kd: %f \r\n pid_out config \r\n kp: %f \r\n ki: %f \r\n kd: %f",
+							pid_in.kp, pid_in.ki, pid_in.kd, pid_out.kp, pid_out.ki, pid_out.kd);
 				}
-			} else if (strcmp(user_sub_cmd, "set") == 0) {
-				if (sscanf(user_sub_action, "kp=%f", &pid_config.kp) == 1) {
-					if (flash_rw_pid_kp_set(pid_config.kp) == 0) {
-						LOG_INF("Set kp success");
-					}
-				} else if (sscanf(user_sub_action, "ki=%f", &pid_config.ki) == 1) {
-					if (flash_rw_pid_ki_set(pid_config.ki) == 0) {
-						LOG_INF("Set ki success");
-					}
-				} else if (sscanf(user_sub_action, "kd=%f", &pid_config.kd) == 1) {
-					if (flash_rw_pid_kd_set(pid_config.kd) == 0) {
-						LOG_INF("Set kd success");
-					}
+			} else if (strcmp(user_sub_cmd, "set_in") == 0) {
+				if (sscanf(user_sub_action, "kp=%f,ki=%f,kd=%f", &pid_in.kp, &pid_in.ki, &pid_in.kd) == 3) {
+					flash_rw_pid_in_set(pid_in);
+					LOG_INF("Set pid_in config success");
 				} else {
-					LOG_ERR("Invalid pid set command");
+					LOG_ERR("Invalid pid set input command");
+				}
+			} else if (strcmp(user_sub_cmd, "set_out") == 0) {
+				if (sscanf(user_sub_action, "kp=%f,ki=%f,kd=%f", &pid_out.kp, &pid_out.ki, &pid_out.kd) == 3) {
+					flash_rw_pid_out_set(pid_out);
+					LOG_INF("Set pid_out config success");
+				} else {
+					LOG_ERR("Invalid pid set output command");
 				}
 			} else {
 				LOG_ERR("Invalid pid sub command");
@@ -261,6 +259,17 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 			} else {
 				LOG_ERR("Invalid sensor command");
 			}
+		// } else if (strcmp(user_cmd, "pressure") == 0) {
+		// 	if (strcmp(user_sub_cmd, "on") == 0) {
+		// 		sensor_debug_flag = true;
+		// 		LOG_INF("Sensor debug on");
+		// 	}
+		// 	else if (strcmp(user_sub_cmd, "offset=") == 0) {
+		// 		sensor_debug_flag = false;
+		// 		LOG_INF("Sensor debug off");
+		// 	} else {
+		// 		LOG_ERR("Invalid sensor command");
+		// 	}
 		} else if (strcmp(user_cmd, "help") == 0) {
 			LOG_INF("Available commands: net, pid, sys");
 		} else {
@@ -279,7 +288,7 @@ static K_KERNEL_STACK_MEMBER(uart_handle_stack, SHELL_STACK_SIZE);
 void uart_thread_init()
 {
 	k_thread_create(&uart_handle_thread, uart_handle_stack, K_THREAD_STACK_SIZEOF(uart_handle_stack),
-					uart_handle, NULL, NULL, NULL, CONFIG_MAIN_THREAD_PRIORITY, 0,
+					uart_handle, NULL, NULL, NULL, 20, 0,
 					K_NO_WAIT);
 	return;
 }

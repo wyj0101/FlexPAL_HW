@@ -104,6 +104,6 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
 void pressure_sensor_init()
 {
     k_thread_create(&pressure_sensor_handle_thread, pressure_sensor_handle_stack, K_THREAD_STACK_SIZEOF(pressure_sensor_handle_stack),
-                    pressure_sensor_handle, NULL, NULL, NULL, CONFIG_MAIN_THREAD_PRIORITY, 0,
+                    pressure_sensor_handle, NULL, NULL, NULL, 10, 0,
                     K_NO_WAIT);
 }

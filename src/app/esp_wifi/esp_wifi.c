@@ -175,7 +175,7 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 
 		if (data_buff[0] == 1) {
 			memcpy(&target_value, &data_buff[(1 + (device_id - 1)* 4)], sizeof(target_value));
-			pid_output = pid_calculate_output(pressure_sensor_value, target_value, device_id);
+			pid_output = pid_calculate_output(pressure_sensor_value, target_value);
 			pump_ctrl_set(pid_output);
 		} else if (data_buff[0] == 2) {
 			target_value = data_buff[(1 + (device_id - 1)* 4)];
@@ -195,7 +195,7 @@ static K_KERNEL_STACK_MEMBER(wifi_handle_stack, WIFI_STACK_SIZE);
 void esp_wifi_init()
 {
 	k_thread_create(&wifi_handle_thread, wifi_handle_stack, K_THREAD_STACK_SIZEOF(wifi_handle_stack),
-					wifi_handle, NULL, NULL, NULL, CONFIG_MAIN_THREAD_PRIORITY, 0,
+					wifi_handle, NULL, NULL, NULL, 16, 0,
 					K_NO_WAIT);
 	return;
 }

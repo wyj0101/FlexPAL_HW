@@ -45,18 +45,21 @@ int flash_rw_net_get(net_config_t *net_config)
     return 0;
 }
 */
-int flash_rw_pid_get(pid_config_t *pid_config)
+
+int flash_rw_pid_get(pid_config_t *pid_in_config, pid_config_t *pid_out_config)
 {
-    CHECK_NULL_ARG_AND_RETURN(pid_config, EINVAL);
+    CHECK_NULL_ARG_AND_RETURN(pid_in_config, EINVAL);
+    CHECK_NULL_ARG_AND_RETURN(pid_out_config, EINVAL);
 
     flash_rw_data_t flash_rw_data;
-
+    
     int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
     if (ret < 0) {
         LOG_ERR("flash read error: %d", ret);
         return ret;
     }
-    *pid_config = flash_rw_data.pid_config;
+    *pid_in_config = flash_rw_data.pid_in_config;
+    *pid_out_config = flash_rw_data.pid_out_config;
 
     return 0;
 }
@@ -221,6 +224,7 @@ int flash_rw_server_set(server_config_t *server_config)
     }
     return 0;
 }
+#if 0
 int flash_rw_pid_kp_set(float pid_kp)
 {
     flash_rw_data_t flash_rw_data;
@@ -313,7 +317,67 @@ int flash_rw_pid_kd_set(float pid_kd)
     }
     return 0;
 }
+#endif
+int flash_rw_pid_in_set(pid_config_t pid_config)
+{
+    flash_rw_data_t flash_rw_data;
 
+    int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash read error: %d", ret);
+        return ret;
+    }
+
+    if (memcmp(&flash_rw_data.pid_in_config, &pid_config, sizeof(flash_rw_data.pid_in_config)) == 0) {
+        LOG_INF("pid in config is same");
+        return 0;
+    }
+
+    memcpy(&flash_rw_data.pid_in_config, &pid_config, sizeof(flash_rw_data.pid_in_config));
+
+    ret = flash_erase(flash_rw_dev, flash_rw_offset, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash erase error: %d", ret);
+        return ret;
+    }
+
+    ret = flash_write(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash write pid in config error: %d", ret);
+        return ret;
+    }
+    return 0;
+}
+int flash_rw_pid_out_set(pid_config_t pid_config)
+{
+    flash_rw_data_t flash_rw_data;
+
+    int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash read error: %d", ret);
+        return ret;
+    }
+
+    if (memcmp(&flash_rw_data.pid_out_config, &pid_config, sizeof(flash_rw_data.pid_out_config)) == 0) {
+        LOG_INF("pid out config is same");
+        return 0;
+    }
+
+    memcpy(&flash_rw_data.pid_out_config, &pid_config, sizeof(flash_rw_data.pid_out_config));
+
+    ret = flash_erase(flash_rw_dev, flash_rw_offset, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash erase error: %d", ret);
+        return ret;
+    }
+
+    ret = flash_write(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash write pid out config error: %d", ret);
+        return ret;
+    }
+    return 0;
+}
 int flash_rw_device_id_set(uint8_t device_id)
 {
     flash_rw_data_t flash_rw_data;
@@ -452,18 +516,16 @@ int flash_rw_init(void)
         falsh_rw_wifi_password_set("12345678");
     }
 
-    if (memcmp(&flash_rw_init_data.pid_config.kp, flash_init_data, sizeof(flash_rw_init_data.pid_config.kp)) == 0) {
-        flash_rw_pid_kp_set(1.0);
+    pid_config_t pid_init_config = {.kd = 1.0, .ki = 0.0, .kp = 0.0};
+    if (memcmp(&flash_rw_init_data.pid_in_config, flash_init_data, sizeof(flash_rw_init_data.pid_in_config)) == 0) {
+        flash_rw_pid_in_set(pid_init_config);
     }
-    if (memcmp(&flash_rw_init_data.pid_config.ki, flash_init_data, sizeof(flash_rw_init_data.pid_config.ki)) == 0) {
-        flash_rw_pid_ki_set(0.0);
-    }
-    if (memcmp(&flash_rw_init_data.pid_config.kd, flash_init_data, sizeof(flash_rw_init_data.pid_config.kd)) == 0) {
-        flash_rw_pid_kd_set(0.0);
+    if (memcmp(&flash_rw_init_data.pid_out_config, flash_init_data, sizeof(flash_rw_init_data.pid_out_config)) == 0) {
+        flash_rw_pid_out_set(pid_init_config);
     }
 
     if (memcmp(&flash_rw_init_data.device_id, flash_init_data, sizeof(flash_rw_init_data.device_id)) == 0) {
-        flash_rw_device_id_set(0);
+        flash_rw_device_id_set(1);
     }
 
     return 0;

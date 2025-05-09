@@ -67,19 +67,20 @@ typedef struct PID_inc
 //     [10] = {.kp = 1.0, .ki = 1.0, .kd = 1.0},
 //     [11] = {.kp = 1.0, .ki = 1.0, .kd = 1.0}};
 
-increment_pid pos_incr_pid[12] = {
-    [0] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.01,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [1] = {.kp_i = 0.008, .ki_i = 0.00, .kd_i = 0.001,.kp_o = 0.006, .ki_o = 0.00, .kd_o = 0.00},
-    [2] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [3] = {.kp_i = 0.012, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [4] = {.kp_i = 0.012, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [5] = {.kp_i = 0.012, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [6] = {.kp_i = 0.007, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [7] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [8] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [9] = {.kp_i = 0.005, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [10] = {.kp_i = 0.005, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
-    [11] = {.kp_i = 0.005, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000}};
+// increment_pid pos_incr_pid[12] = {
+//     [0] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.01,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [1] = {.kp_i = 0.008, .ki_i = 0.00, .kd_i = 0.001,.kp_o = 0.006, .ki_o = 0.00, .kd_o = 0.00},
+//     [2] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [3] = {.kp_i = 0.012, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [4] = {.kp_i = 0.012, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [5] = {.kp_i = 0.012, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [6] = {.kp_i = 0.007, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [7] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [8] = {.kp_i = 0.006, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [9] = {.kp_i = 0.005, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [10] = {.kp_i = 0.005, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000},
+//     [11] = {.kp_i = 0.005, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.005, .ki_o = 0.0, .kd_o = 0.000}};
+increment_pid pos_incr_pid = {0};
 
 // increment_pid tach_pid[12] = {
 //     [0] = {.kp_i = 0.03, .ki_i = 0.0, .kd_i = 0.000,.kp_o = 0.03, .ki_o = 0.0, .kd_o = 0.000},
@@ -182,23 +183,29 @@ static float increment_pos_pid(float present, float target, increment_pid sensor
  * @param: 当前气压值、串口接收的目标气压值、通道号
  * @return： 计算完输出的pwm值
  */
-float pid_calculate_output(float present, float target, int device_id)
+float pid_calculate_output(float present, float target)
 {
 
     // return increment_tach_pid(tach[channel] * 20,
     //                           position_sensor_pid(present, target, sensor_pid[channel]),
     //                           tach_pid[channel]);
-    return limit_pid(increment_pos_pid(present, target, pos_incr_pid[device_id - 1]));
+    return limit_pid(increment_pos_pid(present, target, pos_incr_pid));
 
 }
 int pid_init(void)
 {
-    pid_config_t pid_config;
-    int ret = flash_rw_pid_get(&pid_config);
+    pid_config_t pid_in_config, pid_out_config;
+    int ret = flash_rw_pid_get(&pid_in_config, &pid_out_config);
     if (ret < 0) {
         printk("Failed to get PID config from flash\n");
         return ret;
     }
+    pos_incr_pid.kp_i = pid_in_config.kp;
+    pos_incr_pid.ki_i = pid_in_config.ki;
+    pos_incr_pid.kd_i = pid_in_config.kd;
+    pos_incr_pid.kp_o = pid_out_config.kp;
+    pos_incr_pid.ki_o = pid_out_config.ki;
+    pos_incr_pid.kd_o = pid_out_config.kd;
     
 }
 // static void pid_handle(void *arug0, void *arug1, void *arug2)
