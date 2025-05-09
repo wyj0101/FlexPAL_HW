@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
@@ -28,17 +29,18 @@ int pump_ctrl_init()
 }
 int pump_ctrl_set(float value)
 {
-	float frequency = value * 0.01;
-
-	if(frequency > 0) {
+	if(value > 0) {
 		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_ON);
 		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_ON);
-	} else if(frequency < 0) {
+	} else if(value < 0) {
 		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_OFF);
 		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_OFF);
 	} else {
 		gpio_pin_set(gpiob_dev, VALVE_1_PORT, VALVE_OFF);
 		gpio_pin_set(gpiob_dev, VALVE_2_PORT, VALVE_OFF);
 	}
+
+	float frequency = abs(value) * 0.01;
+
 	return pwm_set_cycles(pump_dev, PUMP_PWM_CHANNEL, PUMP_PERIOD, frequency * PUMP_PERIOD, 0);
 }
