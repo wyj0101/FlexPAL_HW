@@ -156,6 +156,7 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 
 	uint8_t device_id = 0;
 	int32_t target_value = 0;
+	float pid_output = 0;
 
     flash_rw_device_id_get(&device_id);
 
@@ -174,16 +175,16 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 
 		if (data_buff[0] == 1) {
 			memcpy(&target_value, &data_buff[(1 + (device_id - 1)* 4)], sizeof(target_value));
-			pump_ctrl_set(pid_calculate_output(pressure_sensor_value, target_value, device_id));
+			pid_output = pid_calculate_output(pressure_sensor_value, target_value, device_id);
+			pump_ctrl_set(pid_output);
 		} else if (data_buff[0] == 2) {
 			target_value = data_buff[(1 + (device_id - 1)* 4)];
 			pump_ctrl_set(target_value);
 		}
 
 		if (sensor_debug_flag) {
-			printf("device_id: %d, data: [%02x] [%02x] [%02x] [%02x], target_value: %d\n",
-				device_id, data_buff[(1 + (device_id - 1)* 4)], data_buff[(1 + (device_id - 1)* 4) + 1],
-				data_buff[(1 + (device_id - 1)* 4) + 2], data_buff[(1 + (device_id - 1)* 4) + 3], (uint32_t)target_value);
+			printf("device_id: %d, target_value: %d pid_out:%.2f\n",
+				device_id, target_value, pid_output);
 		}
 	}
 }

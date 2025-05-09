@@ -33,7 +33,8 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
     imu_data imu_value = {0};
     uint8_t device_id = 1;
     float battery_value = 0;
-    uint32_t ldc_length = 0;
+    float ldc_length = 0;
+    uint32_t ldc_value = 0;
 
     flash_rw_device_id_get(&device_id);
 
@@ -41,11 +42,12 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
     sys_adc_init();
 
     while (1)
-    {
-        get_imu_value(&imu_value);
-        battery_value = ((sys_adc_read(ADC_CHANNEL_BAT) / 1000.0f) - 2.8) / 1.40f * 100.0f;
+    {   
+        LDC161x_read_value(0, &ldc_value);
+        ldc_length = 30.0 - (((182260000 - ldc_value) / 46600481.0f) * 20.0);
 
-        LDC161x_read_value(0, &ldc_length);
+        battery_value = ((sys_adc_read(ADC_CHANNEL_BAT) / 1000.0f) - 2.8) / 1.40f * 100.0f;
+        get_imu_value(&imu_value);
 
         udp_send_buff[0] = device_id;
         memcpy(&udp_send_buff[1], &ldc_length, sizeof(ldc_length));
@@ -56,14 +58,14 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         esp_wifi_print_uart(udp_send_buff, sizeof(udp_send_buff));
         
         if (sensor_debug_flag) {
-            printf("ldc:%u pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f bat:%.2f bus:%d\n",
-                    ldc_length, pressure_sensor_value, imu_value.acce_x.value, imu_value.acce_y.value, imu_value.acce_z.value,
+            printf("ldc_raw:%u ldc:%.2f pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f bat:%.2f bus:%d\n",
+                    ldc_value, ldc_length, pressure_sensor_value, imu_value.acce_x.value, imu_value.acce_y.value, imu_value.acce_z.value,
                     imu_value.gyro_x.value, imu_value.gyro_y.value, imu_value.gyro_z.value, imu_value.temp.value, 
                     battery_value, sys_adc_read(ADC_CHANNEL_BUS) * 2);
            
         }
 
-        k_sleep(K_MSEC(10));
+        k_sleep(K_MSEC(5));
     }
 }
 void sensor_init()
