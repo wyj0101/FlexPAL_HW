@@ -143,7 +143,7 @@
  */
 #define LDC161X_DEVICE_ID                  ((uint16_t) (0x3055))   // 0x3055
 
-#define CONFIG_LDC_CHANNEL_NUM  4
+#define CONFIG_LDC_CHANNEL_NUM  2
 
 #define CHANNEL_0  0
 #define CHANNEL_1  1
@@ -153,5 +153,4 @@
 /*LDC1614函数*/
 int LDC161x_init(void);
 //结果读取、处理函数
-int LDC161x_value_get(uint8_t channel, uint32_t* value);
-int parse_result_data(uint8_t channel,uint32_t raw_value,uint32_t *real_value);
+int LDC161x_read_value(uint8_t channel, uint32_t *value);

@@ -150,18 +150,18 @@ int LDC161x_read_value(uint8_t channel, uint32_t *value)
         goto END;
     }
 
-    uint8_t status = (data >> 24) & 0xFF;
+    uint8_t status = (data >> 24) & 0xF0;
     if (status != 0) {
-        if (status & 0x8) {
+        if (status & 0x80) {
             LOG_ERR("ERR_UR-Under range error!");
         }
-        if (status & 0x4) {
+        if (status & 0x40) {
             LOG_ERR("ERR_OR-Over range error!");
         }
-        if (status & 0x2) {
+        if (status & 0x20) {
             LOG_ERR("ERR_WDT-Watch dog timeout error!");
         }
-        if (status & 0x1) {
+        if (status & 0x10) {
             LOG_ERR("ERR_AE Error!");
         }
         goto END;
@@ -191,22 +191,27 @@ int LDC161x_init(void)
 
     for (i = 0; i < CONFIG_LDC_CHANNEL_NUM; i++) {
         LDC161x_conversion_time_set(i, LDC_RECOUNT_VALUE(0x0546));
+        // LDC161x_conversion_time_set(i, 0x0546);
     }
 
     for (i = 0; i < CONFIG_LDC_CHANNEL_NUM; i++) {
         LDC161x_stabilize_time_set(i, LDC_SETTLECOUNT_VALUE(100));
+        // LDC161x_stabilize_time_set(i, 100);
     }
 
     for (i = 0; i < CONFIG_LDC_CHANNEL_NUM; i++) {
         LDC161x_Fin_clock_set(i, LDC_CLOCK_DIVIDERS_FIN(0x1) | LDC_CLOCK_DIVIDERS_FREF(0x1));
+        // LDC161x_Fin_clock_set(i, 0x1001);
     }
 
     for (i = 0; i < CONFIG_LDC_CHANNEL_NUM; i++) {
         LDC161x_mux_config_set(i, LDC_MUX_CONFIG_AUTOSCAN_EN | LDC_MUX_CONFIG_RR_SEQUENCE(0x2) | LDC_MUX_CONFIG_DEGLITCH(0x1));
+        // LDC161x_mux_config_set(i, 0x8209);
     }
 
     for (i = 0; i < CONFIG_LDC_CHANNEL_NUM; i++) {
-        LDC161x_driver_current_set(i, LDC_DRIVE_CURRENT_IDRIVE(0xf));
+        // LDC161x_driver_current_set(i, LDC_DRIVE_CURRENT_IDRIVE(0xf));
+        LDC161x_driver_current_set(i, 0x7800);
     }
 
     // for (i = 0; i < CONFIG_LDC_CHANNEL_NUM; i++) {
