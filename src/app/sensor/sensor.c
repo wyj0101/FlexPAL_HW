@@ -46,7 +46,7 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         LDC161x_read_value(0, &ldc_value);
         ldc_length = 30.0 - (((182260000 - ldc_value) / 46600481.0f) * 20.0);
 
-        battery_value = ((sys_adc_read(ADC_CHANNEL_BAT) / 1000.0f) - 2.8) / 1.40f * 100.0f;
+        battery_value = (((sys_adc_read(ADC_CHANNEL_BAT) * 2) / 1000.0f) - 2.8) / 1.40f * 100.0f;
         get_imu_value(&imu_value);
 
         udp_send_buff[0] = device_id;
@@ -58,10 +58,10 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         esp_wifi_print_uart(udp_send_buff, sizeof(udp_send_buff));
         
         if (sensor_debug_flag) {
-            printf("ldc_raw:%u ldc:%.2f pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f bat:%.2f bus:%d\n",
+            printf("ldc_raw:%u ldc:%.2f pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f batadc: %d bat:%.2f bus:%d\n",
                     ldc_value, ldc_length, pressure_sensor_value, imu_value.acce_x.value, imu_value.acce_y.value, imu_value.acce_z.value,
                     imu_value.gyro_x.value, imu_value.gyro_y.value, imu_value.gyro_z.value, imu_value.temp.value, 
-                    battery_value, sys_adc_read(ADC_CHANNEL_BUS) * 2);
+                    sys_adc_read(ADC_CHANNEL_BAT) * 2, battery_value, sys_adc_read(ADC_CHANNEL_BUS) * 2);
            
         }
 
