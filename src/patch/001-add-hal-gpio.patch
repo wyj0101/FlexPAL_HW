@@ -1,0 +1,14 @@
+diff --git a/boards/arm/stm32_min_dev/Kconfig.defconfig b/boards/arm/stm32_min_dev/Kconfig.defconfig
+index 6e38ec4db1..c8a6ec97b4 100644
+--- a/boards/arm/stm32_min_dev/Kconfig.defconfig
++++ b/boards/arm/stm32_min_dev/Kconfig.defconfig
+@@ -9,4 +9,9 @@ config BOARD
+ 	default "stm32_min_dev_blue" if BOARD_STM32_MIN_DEV_BLUE
+ 	default "stm32_min_dev_black" if BOARD_STM32_MIN_DEV_BLACK
+ 
++config STM32F103_HAL_GPIO
++	bool "stm32 hal gpio"
++	select USE_STM32_HAL_GPIO_EX
++	select USE_STM32_HAL_GPIO
++
+ endif # BOARD_STM32_MIN_DEV_BLUE || BOARD_STM32_MIN_DEV_BLACK
