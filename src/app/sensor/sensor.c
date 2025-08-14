@@ -65,7 +65,7 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
            
         }
 
-        k_sleep(K_MSEC(5));
+        k_sleep(K_MSEC(9));
     }
 }
 void sensor_init()
