@@ -46,12 +46,15 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         LDC161x_read_value(0, &ldc_value);
         ldc_length = 30.0 - (((182260000 - ldc_value) / 46600481.0f) * 20.0);
 
+        k_sleep(K_MSEC(5));
+
         battery_value = (((sys_adc_read(ADC_CHANNEL_BAT) * 2) / 1000.0f) - 2.8) / 1.40f * 100.0f;
         get_imu_value(&imu_value);
 
+        memset(udp_send_buff, 0, sizeof(udp_send_buff));
         udp_send_buff[0] = device_id;
         memcpy(&udp_send_buff[1], &ldc_length, sizeof(ldc_length));
-        memcpy(&udp_send_buff[5], &imu_value, sizeof(imu_value));
+        memcpy(&udp_send_buff[5], &imu_value, 24);
         memcpy(&udp_send_buff[29], &pressure_sensor_value, sizeof(pressure_sensor_value));
         memcpy(&udp_send_buff[33], &battery_value, sizeof(battery_value));
         
@@ -65,7 +68,7 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
            
         }
 
-        k_sleep(K_MSEC(5));
+        
     }
 }
 void sensor_init()

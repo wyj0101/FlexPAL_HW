@@ -96,7 +96,7 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
         }
 
         // 经测试，读完之后，必须加点延时才能进行写操作
-        k_usleep(500);
+        k_usleep(1000);
         value = (value_buff[1] << 16) | (value_buff[2] << 8) | value_buff[3];
         pressure_sensor_value = ((((value - 0x800000) * 0xc8) / 0xb33333) * 1000) - CONFIG_PRESSURE_SENSOR_ADJUST;
     }
