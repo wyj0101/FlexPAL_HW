@@ -1,0 +1,23 @@
+# dts/bindings/sensor/sgmicro,sgm41511.yaml
+description: SGM41511 Battery Charger
+
+compatible: "sgmicro,sgm41511"
+
+include:
+  - i2c-device.yaml
+
+properties:
+  ce-gpios:
+    type: phandle-array
+    required: false
+    description: Charge Enable GPIO (Active Low)
+
+  intr-gpios:
+    type: phandle-array
+    required: false
+    description: Interrupt GPIO
+
+  psel-gpios:
+    type: phandle-array
+    required: false
+    description: Power Source Selection GPIO

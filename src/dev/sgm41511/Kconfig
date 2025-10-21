@@ -1,0 +1,7 @@
+config PMIC_SGM41511
+	bool "Enable sgm41511"
+	default n
+	# select TWI0
+	help
+	  use sgm41511 as pmic.
+

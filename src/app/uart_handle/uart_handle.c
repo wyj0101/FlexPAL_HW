@@ -5,6 +5,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/kernel/thread_stack.h>
 #include <zephyr/sys/reboot.h>
+#include <zephyr/drivers/timer/system_timer.h>
 
 #include "util.h"
 #include "uart_handle.h"
@@ -75,6 +76,48 @@ void serial_cb(const struct device *dev, void *user_data)
 		}
 		/* else: characters beyond buffer size are dropped */
 	}
+}
+
+/* STM32 系统存储器地址 */
+#define SYSTEM_MEMORY_BASE 0x1FFFF000 // 对于 F1/F4 系列
+// #define SYSTEM_MEMORY_BASE 0x1FF00000 // 对于 F7/H7 系列
+
+struct arm_vector_table {
+	uint32_t msp;
+	uint32_t reset;
+};
+void jump_to_bootloader(void)
+{
+    /* 禁用中断 */
+   	sys_clock_disable();
+
+	irq_lock();
+    
+	//  /* 使用寄存器直接操作 */
+    // __asm volatile (
+    //     "cpsid i\n\t"             // 禁用中断
+    //     "ldr r3, =%0\n\t"         // 加载 F103 系统存储器地址
+    //     "ldr r1, [r3]\n\t"        // 从向量表加载 MSP 初始值
+    //     "msr msp, r1\n\t"         // 正确设置主堆栈指针
+    //     "ldr r2, [r3, #4]\n\t"    // 加载复位向量地址
+    //     "bx r2\n\t"               // 跳转到 BootLoader
+    //     :
+    //     : "i" (SYSTEM_MEMORY_BASE)
+    //     : "r1", "r2", "r3"
+    // );
+    struct arm_vector_table *vt = (struct arm_vector_table *)SYSTEM_MEMORY_BASE;
+	((void (*)(void))vt->reset)();
+	// /* 设置主堆栈指针 */
+    // __set_MSP(*(volatile uint32_t *)SYSTEM_MEMORY_BASE);
+    
+    // /* 获取复位向量地址并跳转 */
+    // void (*system_bootloader)(void) = (void (*)(void))*(volatile uint32_t *)(SYSTEM_MEMORY_BASE + 4);
+    
+    // /* 跳转到 BootLoader */
+    // system_bootloader();
+    
+    /* 不会执行到这里 */
+    while(1);
 }
 
 static void uart_handle(void *arug0, void *arug1, void *arug2)
@@ -205,6 +248,9 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 				if (flash_rw_device_id_get(&device_id) == 0) {
 					LOG_INF("Device id: %d", device_id);
 				}
+			} else if (strcmp(user_sub_cmd, "upgrade") == 0) { 
+				LOG_INF("System upgrade");
+				jump_to_bootloader();
 		 	} else {
 				LOG_ERR("Invalid system command");
 			}

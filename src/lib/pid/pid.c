@@ -1,6 +1,7 @@
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 #include <string.h>
+#include <math.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/kernel/thread_stack.h>
 #include <zephyr/drivers/spi.h>

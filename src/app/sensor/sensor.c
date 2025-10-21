@@ -46,9 +46,10 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         LDC161x_read_value(0, &ldc_value);
         ldc_length = 30.0 - (((182260000 - ldc_value) / 46600481.0f) * 20.0);
 
-        k_sleep(K_MSEC(5));
+        k_sleep(K_MSEC(50));
 
         battery_value = (((sys_adc_read(ADC_CHANNEL_BAT) * 2) / 1000.0f) - 2.8) / 1.40f * 100.0f;
+        memset(&imu_value, 0, sizeof(imu_value));
         get_imu_value(&imu_value);
 
         memset(udp_send_buff, 0, sizeof(udp_send_buff));
@@ -60,6 +61,7 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         
         esp_wifi_print_uart(udp_send_buff, sizeof(udp_send_buff));
         
+        printf("gz:%.2f byte:%x %x %x %x \n", imu_value.gyro_z.value, udp_send_buff[21], udp_send_buff[22], udp_send_buff[23], udp_send_buff[24]);
         if (sensor_debug_flag) {
             printf("ldc_raw:%u ldc:%.2f pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f batadc: %d bat:%.2f bus:%d\n",
                     ldc_value, ldc_length, pressure_sensor_value, imu_value.acce_x.value, imu_value.acce_y.value, imu_value.acce_z.value,

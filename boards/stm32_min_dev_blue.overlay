@@ -73,15 +73,21 @@ zephyr_udc0: &usb {
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_STANDARD>;
 
-	imu: mpu6050@68 {
-		compatible = "invensense,mpu6050";
+	imu: bmi270@68 {
+		compatible = "bosch,bmi270";
 		reg = <0x68>;
-		status = "okay";
 	};
 	ldc: ldc1612@2a {
 		compatible = "ti,ldc1614";
 		reg = <0x2a>;
 		status = "okay";
+	};
+	pmic: sgm41511@6b {
+		compatible = "sgmicro,sgm41511";
+		reg = <0x6b>;
+		status = "okay";
+
+		intr-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;    // 中断引脚，开漏输出
 	};
 };
 

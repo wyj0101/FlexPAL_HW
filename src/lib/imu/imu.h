@@ -17,3 +17,4 @@ typedef struct imu_data {
 } imu_data;
 
 int get_imu_value(imu_data *value);
+int imu_init(void);

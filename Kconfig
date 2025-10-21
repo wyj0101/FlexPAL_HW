@@ -5,5 +5,6 @@ config PRESSURE_SENSOR_ADJUST
 	default 100
 	help
 	  This macro represents the calibration value of the pressure sensor.
-	
+
+rsource "src/dev/sgm41511/Kconfig"
 source "Kconfig.zephyr"

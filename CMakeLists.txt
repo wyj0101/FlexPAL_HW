@@ -21,6 +21,8 @@ target_include_directories(app PRIVATE
     src/lib/adc
     src/lib/ldc
     src/lib/pid
+    src/lib/pmic
+    # src/dev/sgm41511
     src/util/logging
     src/util
 )
@@ -34,3 +36,4 @@ target_sources(app PRIVATE ${lib})
 target_sources(app PRIVATE src/main.c)
 
 
+add_subdirectory_ifdef(CONFIG_PMIC_SGM41511 src/dev/sgm41511)
