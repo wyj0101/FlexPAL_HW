@@ -34,7 +34,11 @@ static void button_work_handler(struct k_work *work)
     
     LOG_INF("Button pressed for %lld ms", press_duration);
     
-    if (press_duration >= 3000) {
+    if (press_duration >= 100 && press_duration < 1000) {
+        LOG_INF("Short press - exit otg mode");
+        sgm41511_otg_mode_on_off(false);  // 退出OTG模式
+        sgm41511_otg_mode_check_and_reenter(); // 防止误触，检查并重新进入OTG模式
+    } else if (press_duration >= 3000) {
         // 长按3秒：进入运输模式
         LOG_INF("Long press - Enter shipping mode");
         sgm41511_enter_ship_mode(IMMEDIATELY);

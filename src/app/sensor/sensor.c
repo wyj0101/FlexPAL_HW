@@ -61,7 +61,6 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
         
         esp_wifi_print_uart(udp_send_buff, sizeof(udp_send_buff));
         
-        printf("gz:%.2f byte:%x %x %x %x \n", imu_value.gyro_z.value, udp_send_buff[21], udp_send_buff[22], udp_send_buff[23], udp_send_buff[24]);
         if (sensor_debug_flag) {
             printf("ldc_raw:%u ldc:%.2f pressure: %f x:%.2f y:%.2f z:%.2f gx:%.2f gy:%.2f gx:%.2f temp:%.2f batadc: %d bat:%.2f bus:%d\n",
                     ldc_value, ldc_length, pressure_sensor_value, imu_value.acce_x.value, imu_value.acce_y.value, imu_value.acce_z.value,

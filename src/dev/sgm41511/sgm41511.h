@@ -118,6 +118,7 @@ enum battary_status {
 #define VINDPM_MASK (0xf << 0)
 #define VINDPM_4V4 (0x5 << 0)
 #define BOOSTV_5V3 (0x3 << 4)
+#define BOOSTV_5V15 (0x2 << 4)
 
 #define REG_RST (1 << 7)
 #define BOOST_LIM (1 << 7)
@@ -160,4 +161,5 @@ int sgm41511_enter_ship_mode(enum BATFET_DLY_SELECT select);
 int sgm41511_otg_mode_on_off(bool on_off);
 int sgm41511_otg_mode_get(void);
 int sgm41511_fast_charge_current(enum SGM41511_ICHG ICHG);
+int sgm41511_otg_mode_check_and_reenter(void);
 // #endif /* ZEPHYR_DRIVERS_SENSOR_SGM41511_SGM41511_H_ */

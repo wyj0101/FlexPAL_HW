@@ -206,6 +206,7 @@ static void charge_status_update(const struct device *dev)
 	// led_on(led_device, 3);  // 可以控制LED指示状态
 	sgm41511_get_status(dev);  // 获取当前充电状态
 	// sgm41511_register_view(dev);  // 调试用：查看寄存器
+	sgm41511_otg_mode_check_and_reenter(); // 检查并重新进入OTG模式
 }
 
 // OTG模式开关控制函数
@@ -252,6 +253,24 @@ int sgm41511_otg_mode_get(void)
 
 	// 返回OTG配置位状态
 	return val & OTG_CONFIG;
+}
+
+// 如果没插usb，则再次进入otg
+int sgm41511_otg_mode_check_and_reenter(void)
+{
+	int ret;
+	uint8_t val;
+	ret = sgm41511_reg_read(g_dev_smg41511, SGM41511_REG0A_ADDR, &val, sizeof(val));
+	if (ret < 0) {
+		LOG_ERR("%s %d Failed to get sgm41511 val: %d !\n", __func__, __LINE__, ret);
+		return ret;
+	}
+
+	if (!(val & 0x80)) {
+		LOG_INF("No USB plugged in, re-enter OTG mode");
+		return sgm41511_otg_mode_on_off(true);
+	}
+	return 0;
 }
 
 // 进入运输模式函数（低功耗模式）
@@ -515,7 +534,7 @@ static int sgm41511_reg_configure(const struct device *dev)
 
 	val &= (~VINDPM_MASK);  // 清除VINDPM位 清空第四位
 	val |= VINDPM_4V4;      // 设置4.4V为输入的跌落电压下限阈值，默认输入电压上限为6.5V
-	val |= BOOSTV_5V3;     // 设置输出升压电压为5.3V
+	// val |= BOOSTV_5V15;     // 设置输出升压电压为5.3V
 	err = sgm41511_reg_write(dev, SGM41511_REG06_ADDR, val);
 	if (err)
 		goto out;
@@ -587,7 +606,7 @@ static int sgm41511_reg_configure(const struct device *dev)
 
 	val &= (~CHG_CONFIG);  // 清除充电配置位
 	val |= CHG_CONFIG;     // 使能充电
-	// val |= OTG_CONFIG;  // 使能OTG功能
+	val |= OTG_CONFIG;  // 使能OTG功能
 	err = sgm41511_reg_write(dev, SGM41511_REG01_ADDR, val);
 	if (err)
 		goto out;
