@@ -29,6 +29,7 @@ static int rx_buf_pos;
 
 bool sensor_debug_flag = false;
 extern float pressure_sensor_value;
+extern bool calibration_ing;
 /*
  * Print a null-terminated string character by character to the UART interface
  */
@@ -306,8 +307,10 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 			} else if (strcmp(user_sub_cmd, "cali") == 0) {
 				LOG_INF("Sensor auto calibration start ");
 				LOG_INF("Please keep the sensor for 5 seconds");
+				calibration_ing = true;
 				LDC161X_auto_calibration();
 				LOG_INF("Spring Sensor auto calibration end ");
+				calibration_ing = false;
 				float pressure_sum = 0;
 				for (int i = 0; i < 10; i++) {
 					pressure_sum += pressure_sensor_value;
@@ -315,6 +318,7 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 				}
 				float pressure_offset_value = pressure_sum / 10.0;
 				flash_rw_pressure_offset_value_set(pressure_offset_value);
+				pressure_sensor_offset_value = pressure_offset_value;
 				LOG_INF("Pressure Sensor offset value: %f", pressure_offset_value);
 			} else {
 				LOG_ERR("Invalid sensor command");

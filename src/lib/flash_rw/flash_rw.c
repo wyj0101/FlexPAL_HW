@@ -615,9 +615,11 @@ int flash_rw_init(void)
 
     if (memcmp(&flash_rw_init_data.ldc_max_value, flash_init_data, sizeof(flash_rw_init_data.ldc_max_value)) == 0) {
         flash_rw_init_data.ldc_max_value = 182260000;
+        flash_rw_ldc_max_value_set(flash_rw_init_data.ldc_max_value);
     }
     if (memcmp(&flash_rw_init_data.pressure_offset_value, flash_init_data, sizeof(flash_rw_init_data.pressure_offset_value)) == 0) {
         flash_rw_init_data.pressure_offset_value = 0.0;
+        flash_rw_pressure_offset_value_set(flash_rw_init_data.pressure_offset_value);
     }
 
     return 0;

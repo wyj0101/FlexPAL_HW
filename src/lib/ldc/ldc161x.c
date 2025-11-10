@@ -195,7 +195,7 @@ int LDC161X_auto_calibration(void)
 
     for (int i = 0; i < 10; i++) {
         LDC161x_read_value(0, &ldc_max_value[i]);
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(10));
         sum += ldc_max_value[i];
     }
     sum = sum / 10.0;

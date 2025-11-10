@@ -162,7 +162,8 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 
 	pump_ctrl_init();
 
-	esp_at_wifi_init();
+	k_msleep(2000);
+	//esp_at_wifi_init();
 
 	sensor_init();
 	/* indefinitely wait for input from the user */
