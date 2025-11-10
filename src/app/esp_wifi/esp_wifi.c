@@ -24,7 +24,7 @@ K_MSGQ_DEFINE(wifi_msgq, WIFI_MSG_SIZE, 5, 4);
 /* receive buffer used in UART ISR callback */
 static uint8_t rx_buf[WIFI_MSG_SIZE];
 static int rx_buf_pos;
-
+extern bool spring_pid_enable;
 
 /*
  * Print a null-terminated string character by character to the UART interface
@@ -129,6 +129,9 @@ static int esp_at_wifi_init(void)
 
 extern float pressure_sensor_value;
 extern bool sensor_debug_flag;
+extern bool pressure_pid_enable;
+extern float ldc_length;
+extern float spring_pid_pressure_value;
 
 static void wifi_handle(void *arug0, void *arug1, void *arug2)
 {
@@ -163,7 +166,7 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 	pump_ctrl_init();
 
 	k_msleep(2000);
-	//esp_at_wifi_init();
+	esp_at_wifi_init();
 
 	sensor_init();
 	/* indefinitely wait for input from the user */
@@ -181,6 +184,12 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 		} else if (data_buff[0] == 2) {
 			target_value = data_buff[(1 + (device_id - 1)* 4)];
 			pump_ctrl_set(target_value);
+		} else if (data_buff[0] == 3) {
+			memcpy(&target_value, &data_buff[(1 + (device_id - 1)* 4)], sizeof(target_value));
+			if (!spring_pid_enable) {
+				spring_pid_pressure_value = spring_pid_calculate_output(ldc_length, target_value);
+				spring_pid_enable = true;
+			}	
 		}
 
 		if (sensor_debug_flag) {

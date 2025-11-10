@@ -28,15 +28,15 @@ static K_KERNEL_STACK_MEMBER(sensor_handle_stack, SENSOR_STACK_SIZE);
 extern bool sensor_debug_flag;
 extern float pressure_sensor_value;
 static uint8_t udp_send_buff[40];
-
+float ldc_length = 0;
 uint32_t g_ldc_max_value = 182260000;
 bool calibration_ing = false;
+
 static void sensor_handle(void *arug0, void *arug1, void *arug2)
 {
     imu_data imu_value = {0};
     uint8_t device_id = 1;
     float battery_value = 0;
-    float ldc_length = 0;
     uint32_t ldc_value = 0;
 
     flash_rw_device_id_get(&device_id);

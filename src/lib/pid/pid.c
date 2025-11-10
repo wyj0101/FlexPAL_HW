@@ -16,7 +16,7 @@ typedef struct {
     float i_term;     // 积分项累计
 } pid_pos_t;
 
-static pid_pos_t g_pid = {0};
+static pid_pos_t g_pid, spring_pid = {0};
 
 static inline float clampf(float v, float lo, float hi){
     if (v < lo) return lo;
@@ -43,6 +43,11 @@ float pid_calculate_output(float present, float target)
     return pid_pos_step(&g_pid, present, target);
 }
 
+float spring_pid_calculate_output(float present, float target)
+{
+    return pid_pos_step(&spring_pid, present, target);
+}
+
 /* 初始化：从 flash 读取 Kp/Ki/Kd；清零历史量 */
 int pid_init(void)
 {
@@ -58,11 +63,21 @@ int pid_init(void)
     g_pid.ki = pid_out_config.ki;
     g_pid.kd = pid_out_config.kd;
 
+    spring_pid.kp = pid_in_config.kp;
+    spring_pid.ki = pid_in_config.ki;
+    spring_pid.kd = pid_in_config.kd;
+
     g_pid.e_prev = 0.0f;
     g_pid.i_term = 0.0f;
 
+    spring_pid.e_prev = 0.0f;
+    spring_pid.i_term = 0.0f;
+
     printk("PID(pos) init: Kp=%.6f Ki=%.6f Kd=%.6f, dt=%.3f s\n",
            g_pid.kp, g_pid.ki, g_pid.kd, PID_DT);
+    printk("Spring PID(pos) init: Kp=%.6f Ki=%.6f Kd=%.6f, dt=%.3f s\n",
+           spring_pid.kp, spring_pid.ki, spring_pid.kd, PID_DT);
+
     return 0;
 }
 

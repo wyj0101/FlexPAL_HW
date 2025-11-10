@@ -29,6 +29,7 @@ static int rx_buf_pos;
 
 bool sensor_debug_flag = false;
 extern float pressure_sensor_value;
+extern float pressure_sensor_offset_value;
 extern bool calibration_ing;
 /*
  * Print a null-terminated string character by character to the UART interface

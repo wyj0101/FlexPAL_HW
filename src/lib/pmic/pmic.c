@@ -13,7 +13,7 @@
 #endif
 
 #define BUTTON_PORT 0
-static const struct device *pmic_dev = DEVICE_DT_GET(DT_NODELABEL(pmic));
+// static const struct device *pmic_dev = DEVICE_DT_GET(DT_NODELABEL(pmic));
 static const struct device *gpioa_dev = DEVICE_DT_GET(DT_NODELABEL(gpioa));
 
 static struct gpio_callback power_ctl_button_callback;
