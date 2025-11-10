@@ -9,6 +9,7 @@
 #include "logging.h"
 
 #include "ldc161x.h"
+#include "flash_rw.h"
 
 const char *status_str[]={"conversion under range error","conversion over range error",
     "watch dog timeout error","Amplitude High Error",
@@ -21,6 +22,10 @@ const char *status_str[]={"conversion under range error","conversion over range 
 static const struct i2c_dt_spec ldc_dev = I2C_DT_SPEC_GET(DT_NODELABEL(ldc));
 
 LOG_MODULE_REGISTER(ldc161x, LOG_DEBUG);
+
+static struct k_mutex g_ldc_read_lock;
+
+extern uint32_t g_ldc_max_value;
 
 int LDC161x_write(uint8_t reg_addr, uint16_t data)
 {
@@ -137,6 +142,8 @@ int LDC161x_sensor_config_set(uint8_t channel, uint16_t config)
 
 int LDC161x_read_value(uint8_t channel, uint32_t *value)
 {
+    k_mutex_lock(&g_ldc_read_lock, K_MSEC(500));
+
     if (channel > 3) {
         LOG_ERR("Invalid channel: %d", channel);
         goto END;
@@ -172,12 +179,34 @@ int LDC161x_read_value(uint8_t channel, uint32_t *value)
         goto END;
     }
     *value = data & 0x0FFFFFFF;
+    k_mutex_unlock(&g_ldc_read_lock);
     return 0;
 
 END:
     *value = 0;
+    k_mutex_unlock(&g_ldc_read_lock);
     return -EINVAL;
 }
+
+int LDC161X_auto_calibration(void)
+{
+    uint32_t ldc_max_value[10];
+    uint32_t sum = 0;
+
+    for (int i = 0; i < 10; i++) {
+        LDC161x_read_value(0, &ldc_max_value[i]);
+        k_sleep(K_MSEC(100));
+        sum += ldc_max_value[i];
+    }
+    sum = sum / 10.0;
+    LOG_INF("LDC max value: %d", sum);
+
+    flash_rw_ldc_max_value_set(sum);
+    g_ldc_max_value = sum;
+
+    return 0;
+}
+
 int LDC161x_init(void)
 {
     uint8_t i;

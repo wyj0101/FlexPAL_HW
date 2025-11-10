@@ -474,6 +474,91 @@ int falsh_rw_wifi_password_set(uint8_t *password)
 
 }
 
+int flash_rw_ldc_max_value_set(uint32_t ldc_max_value)
+{
+    flash_rw_data_t flash_rw_data;
+
+    int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash read error: %d", ret);
+        return ret;
+    }
+    
+    if (flash_rw_data.ldc_max_value == ldc_max_value) {
+        LOG_INF("ldc max value is same");
+        return 0;
+    }
+
+    flash_rw_data.ldc_max_value = ldc_max_value;
+
+    ret = flash_erase(flash_rw_dev, flash_rw_offset, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash erase error: %d", ret);
+        return ret;
+    }
+
+    ret = flash_write(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash write ldc max value error: %d", ret);
+        return ret;
+    }
+    return 0;
+}
+int flash_rw_ldc_max_value_get(uint32_t *ldc_max_value)
+{
+    flash_rw_data_t flash_rw_data;
+
+    int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash read error: %d", ret);
+        return ret;
+    }
+    *ldc_max_value = flash_rw_data.ldc_max_value;
+    return 0;
+}
+
+int flash_rw_pressure_offset_value_set(float pressure_offset_value)
+{
+    flash_rw_data_t flash_rw_data;
+
+    int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash read error: %d", ret);
+        return ret;
+    }
+    
+    if (flash_rw_data.pressure_offset_value == pressure_offset_value) {
+        LOG_INF("pressure offset value is same");
+        return 0;
+    }
+
+    flash_rw_data.pressure_offset_value = pressure_offset_value;
+
+    ret = flash_erase(flash_rw_dev, flash_rw_offset, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash erase error: %d", ret);
+        return ret;
+    }
+
+    ret = flash_write(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash write pressure offset value error: %d", ret);
+        return ret;
+    }
+    return 0;
+}
+int flash_rw_pressure_offset_value_get(float *pressure_offset_value)
+{
+    flash_rw_data_t flash_rw_data;
+
+    int ret = flash_read(flash_rw_dev, flash_rw_offset, &flash_rw_data, sizeof(flash_rw_data));
+    if (ret < 0) {
+        LOG_ERR("flash read error: %d", ret);
+        return ret;
+    }
+    *pressure_offset_value = flash_rw_data.pressure_offset_value;
+    return 0;
+}
 int flash_rw_init(void)
 {
     flash_rw_data_t flash_rw_init_data;
@@ -526,6 +611,13 @@ int flash_rw_init(void)
 
     if (memcmp(&flash_rw_init_data.device_id, flash_init_data, sizeof(flash_rw_init_data.device_id)) == 0) {
         flash_rw_device_id_set(1);
+    }
+
+    if (memcmp(&flash_rw_init_data.ldc_max_value, flash_init_data, sizeof(flash_rw_init_data.ldc_max_value)) == 0) {
+        flash_rw_init_data.ldc_max_value = 182260000;
+    }
+    if (memcmp(&flash_rw_init_data.pressure_offset_value, flash_init_data, sizeof(flash_rw_init_data.pressure_offset_value)) == 0) {
+        flash_rw_init_data.pressure_offset_value = 0.0;
     }
 
     return 0;

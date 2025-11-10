@@ -30,6 +30,8 @@ typedef struct flash_rw_data {
     pid_config_t pid_out_config;
     wifi_config_t wifi_config;
     uint8_t device_id;
+    uint32_t ldc_max_value;
+    float pressure_offset_value;
 }flash_rw_data_t;
 
 // int flash_rw_net_get(net_config_t *net_config);
@@ -48,5 +50,10 @@ int flash_rw_pid_out_set(pid_config_t pid_config);
 int flash_rw_device_id_set(uint8_t device_id);
 int flash_rw_wifi_ssid_set(uint8_t *ssid);
 int falsh_rw_wifi_password_set(uint8_t *password);
+
+int flash_rw_ldc_max_value_set(uint32_t ldc_max_value);
+int flash_rw_ldc_max_value_get(uint32_t *ldc_max_value);
+int flash_rw_pressure_offset_value_set(float pressure_offset_value);
+int flash_rw_pressure_offset_value_get(float *pressure_offset_value);
 
 int flash_rw_init(void);

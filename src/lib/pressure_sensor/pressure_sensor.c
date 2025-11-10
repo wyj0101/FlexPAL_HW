@@ -12,6 +12,7 @@
 #endif
 
 #include "pressure_sensor.h"
+#include "flash_rw.h"
 
 LOG_MODULE_REGISTER(pressure_sensor, LOG_DEBUG);
 
@@ -22,6 +23,7 @@ static const struct device *const spi_dev = DEVICE_DT_GET(DT_NODELABEL(spi2));
 static struct gpio_dt_spec sensor_cs =  SPI_CS_GPIOS_DT_SPEC_GET(DT_NODELABEL(pressure_sensor));
 
 float pressure_sensor_value = 0;
+float pressure_sensor_offset_value = 0;
 
 static struct spi_config sensor_cfg = {0};
 
@@ -81,6 +83,7 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
         LOG_ERR("spi device not ready");
         return;
     }
+    flash_rw_pressure_offset_value_get(&pressure_sensor_offset_value);
 
     while (1)
     {
@@ -98,7 +101,7 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
         // 经测试，读完之后，必须加点延时才能进行写操作
         k_usleep(1000);
         value = (value_buff[1] << 16) | (value_buff[2] << 8) | value_buff[3];
-        pressure_sensor_value = ((((value - 0x800000) * 0xc8) / 0xb33333) * 1000) - CONFIG_PRESSURE_SENSOR_ADJUST;
+        pressure_sensor_value = ((((value - 0x800000) * 0xc8) / 0xb33333) * 1000) - pressure_sensor_offset_value;
     }
 }
 void pressure_sensor_init()

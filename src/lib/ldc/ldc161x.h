@@ -154,3 +154,4 @@
 int LDC161x_init(void);
 //结果读取、处理函数
 int LDC161x_read_value(uint8_t channel, uint32_t *value);
+int LDC161X_auto_calibration(void);

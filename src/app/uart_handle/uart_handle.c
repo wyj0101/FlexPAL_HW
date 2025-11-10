@@ -11,6 +11,7 @@
 #include "uart_handle.h"
 #include "flash_rw.h"
 #include "esp_wifi.h"
+#include "ldc161x.h"
 #include "pump_ctrl.h"
 
 #define UART_NODE1 DT_ALIAS(uart1)
@@ -27,6 +28,7 @@ static uint8_t rx_buf[MSG_SIZE];
 static int rx_buf_pos;
 
 bool sensor_debug_flag = false;
+extern float pressure_sensor_value;
 /*
  * Print a null-terminated string character by character to the UART interface
  */
@@ -298,10 +300,22 @@ static void uart_handle(void *arug0, void *arug1, void *arug2)
 			if (strcmp(user_sub_cmd, "on") == 0) {
 				sensor_debug_flag = true;
 				LOG_INF("Sensor debug on");
-			}
-			else if (strcmp(user_sub_cmd, "off") == 0) {
+			} else if (strcmp(user_sub_cmd, "off") == 0) {
 				sensor_debug_flag = false;
 				LOG_INF("Sensor debug off");
+			} else if (strcmp(user_sub_cmd, "cali") == 0) {
+				LOG_INF("Sensor auto calibration start ");
+				LOG_INF("Please keep the sensor for 5 seconds");
+				LDC161X_auto_calibration();
+				LOG_INF("Spring Sensor auto calibration end ");
+				float pressure_sum = 0;
+				for (int i = 0; i < 10; i++) {
+					pressure_sum += pressure_sensor_value;
+					k_sleep(K_MSEC(12));
+				}
+				float pressure_offset_value = pressure_sum / 10.0;
+				flash_rw_pressure_offset_value_set(pressure_offset_value);
+				LOG_INF("Pressure Sensor offset value: %f", pressure_offset_value);
 			} else {
 				LOG_ERR("Invalid sensor command");
 			}

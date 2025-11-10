@@ -28,6 +28,8 @@ static K_KERNEL_STACK_MEMBER(sensor_handle_stack, SENSOR_STACK_SIZE);
 extern bool sensor_debug_flag;
 extern float pressure_sensor_value;
 static uint8_t udp_send_buff[40];
+
+uint32_t g_ldc_max_value = 182260000;
 static void sensor_handle(void *arug0, void *arug1, void *arug2)
 {
     imu_data imu_value = {0};
@@ -40,11 +42,12 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
 
     pressure_sensor_init();
     sys_adc_init();
+    flash_rw_ldc_max_value_get(&g_ldc_max_value);
 
     while (1)
     {   
         LDC161x_read_value(0, &ldc_value);
-        ldc_length = 30.0 - (((182260000 - ldc_value) / 46600481.0f) * 20.0);
+        ldc_length = 30.0 - (((g_ldc_max_value - ldc_value) / 46600481.0f) * 20.0);
 
         k_sleep(K_MSEC(50));
 
