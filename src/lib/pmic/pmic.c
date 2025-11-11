@@ -17,7 +17,7 @@
 static const struct device *gpioa_dev = DEVICE_DT_GET(DT_NODELABEL(gpioa));
 
 static struct gpio_callback power_ctl_button_callback;
-
+extern bool pressure_sensor_enable;
 static struct {
     struct gpio_callback cb;
     struct k_work work;
@@ -40,6 +40,7 @@ static void button_work_handler(struct k_work *work)
         sgm41511_otg_mode_check_and_reenter(); // 防止误触，检查并重新进入OTG模式
     } else if (press_duration >= 3000) {
         // 长按3秒：进入运输模式
+        pressure_sensor_enable = false; // 停止压力传感器测量
         LOG_INF("Long press - Enter shipping mode");
         sgm41511_enter_ship_mode(IMMEDIATELY);
     }

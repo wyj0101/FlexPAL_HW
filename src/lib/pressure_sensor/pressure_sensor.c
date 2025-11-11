@@ -28,6 +28,7 @@ float pressure_sensor_value = 0;
 float pressure_sensor_offset_value = 0;
 bool spring_pid_enable = false;
 float spring_pid_pressure_value = 0;
+bool pressure_sensor_enable = true;
 
 static struct spi_config sensor_cfg = {0};
 
@@ -80,6 +81,7 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
     float value;
     int count = 0;
     float pid_output = 0;
+    int retry_count = 0, retry_write_count = 0;
 
     LOG_INF("sensor handle start!");
     sensor_config_init();
@@ -91,21 +93,52 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
     }
     flash_rw_pressure_offset_value_get(&pressure_sensor_offset_value);
 
+    if (spi_transceive(spi_dev, &sensor_cfg, &read_cmd_set, &read_value_set) != 0) {
+            LOG_ERR("Spi Read Failed!");
+    }
+    k_msleep(10);
+
     while (1)
     {
-        if (spi_write(spi_dev, &sensor_cfg, &start_cmd_set) != 0) {
+    if (pressure_sensor_enable) {
+
+retry_write:
+        if (spi_transceive(spi_dev, &sensor_cfg, &start_cmd_set, &read_value_set) != 0) {
             LOG_ERR("Spi Write Failed!");
         }
 
-        // 经测试，最少延时7ms，6900us都不行
-        k_msleep(9);
+        if (value_buff[0] != 0x40) {
+            k_msleep(1);
+            retry_write_count++;
+            if (retry_write_count >= 11) {
+                LOG_ERR("Pressure sensor start command failed too many times!");
+                retry_write_count = 0;
+                continue;
+                pressure_sensor_value = 0;
+            }
+            goto retry_write;
+        }
 
+        // 经测试，最少延时7ms，6900us都不行
+        k_msleep(7);
+
+retry:
         if (spi_transceive(spi_dev, &sensor_cfg, &read_cmd_set, &read_value_set) != 0) {
             LOG_ERR("Spi Read Failed!");
         }
 
         // 经测试，读完之后，必须加点延时才能进行写操作
-        k_usleep(1000);
+        k_msleep(1);
+        if (value_buff[0] == 0x60) {
+            retry_count++;
+            if (retry_count >= 5) {
+                LOG_ERR("Pressure sensor read failed too many times!");
+                retry_count = 0;
+                continue;
+                pressure_sensor_value = 0;
+            }
+            goto retry;
+        }
         value = (value_buff[1] << 16) | (value_buff[2] << 8) | value_buff[3];
         pressure_sensor_value = ((((value - 0x800000) * 0xc8) / 0xb33333) * 1000) - pressure_sensor_offset_value;
 
@@ -120,9 +153,13 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
             }
         }
     }
+    else {
+        k_msleep(1000);
+    }
 }
 void pressure_sensor_init()
 {
+    gpio_pin_configure_dt(&sensor_cs, GPIO_OUTPUT_LOW);
     k_thread_create(&pressure_sensor_handle_thread, pressure_sensor_handle_stack, K_THREAD_STACK_SIZEOF(pressure_sensor_handle_stack),
                     pressure_sensor_handle, NULL, NULL, NULL, 10, 0,
                     K_NO_WAIT);

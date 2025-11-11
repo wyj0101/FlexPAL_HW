@@ -104,7 +104,7 @@ zephyr_udc0: &usb {
 		status = "okay";
 		compatible = "us6330-015-s";
 		reg = <0>;
-		spi-max-frequency = <18000000>;
+		spi-max-frequency = <1250000>;
 	};
 };
 

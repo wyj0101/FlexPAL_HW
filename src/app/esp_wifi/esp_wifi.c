@@ -165,7 +165,7 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 
 	pump_ctrl_init();
 
-	k_msleep(2000);
+	// k_msleep(2000);
 	esp_at_wifi_init();
 
 	sensor_init();
