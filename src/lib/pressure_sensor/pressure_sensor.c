@@ -93,10 +93,31 @@ static void pressure_sensor_handle(void *arug0, void *arug1, void *arug2)
     }
     flash_rw_pressure_offset_value_get(&pressure_sensor_offset_value);
 
+    gpio_pin_set_dt(&sensor_cs, 1);
+    k_msleep(1);
+    gpio_pin_set_dt(&sensor_cs, 0);
+    k_msleep(1);
+    gpio_pin_set_dt(&sensor_cs, 1);
+    k_msleep(1);
+    gpio_pin_set_dt(&sensor_cs, 0);
+
+    if (spi_transceive(spi_dev, &sensor_cfg, &read_cmd_set, &read_value_set) != 0) {
+            LOG_ERR("Spi Read Failed!");
+    }
+    if (spi_transceive(spi_dev, &sensor_cfg, &read_cmd_set, &read_value_set) != 0) {
+            LOG_ERR("Spi Read Failed!");
+    }
     if (spi_transceive(spi_dev, &sensor_cfg, &read_cmd_set, &read_value_set) != 0) {
             LOG_ERR("Spi Read Failed!");
     }
     k_msleep(10);
+
+    if (value_buff[0] != 0x40) {
+        LOG_WRN("Pressure sensor not ready!, value: 0x%02x",
+                value_buff[0]);
+        // pressure_sensor_enable = false;
+        pressure_sensor_value = 0;
+    }
 
     while (1)
     {
@@ -111,10 +132,10 @@ retry_write:
             k_msleep(1);
             retry_write_count++;
             if (retry_write_count >= 11) {
-                LOG_ERR("Pressure sensor start command failed too many times!");
+                // LOG_ERR("Pressure sensor start command failed too many times!");
                 retry_write_count = 0;
-                continue;
                 pressure_sensor_value = 0;
+                continue;
             }
             goto retry_write;
         }
@@ -132,7 +153,7 @@ retry:
         if (value_buff[0] == 0x60) {
             retry_count++;
             if (retry_count >= 5) {
-                LOG_ERR("Pressure sensor read failed too many times!");
+                // LOG_ERR("Pressure sensor read failed too many times!");
                 retry_count = 0;
                 continue;
                 pressure_sensor_value = 0;
@@ -156,6 +177,7 @@ retry:
     else {
         k_msleep(1000);
     }
+}
 }
 void pressure_sensor_init()
 {
