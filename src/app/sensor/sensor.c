@@ -49,8 +49,8 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
     {
         if (!calibration_ing) {
             LDC161x_read_value(0, &ldc_value);
-            ldc_length = 30.0 - (((g_ldc_max_value - ldc_value) / 46600481.0f) * 20.0);
-            ldc_length < 0 ? (ldc_length = 30) : ldc_length;
+            ldc_length = 35.0 - (((g_ldc_max_value - ldc_value) / 46600481.0f) * 25.0);
+            ldc_length < 0 ? (ldc_length = 35) : ldc_length;
             k_sleep(K_MSEC(50));
         }   
         

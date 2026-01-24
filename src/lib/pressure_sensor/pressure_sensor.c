@@ -132,7 +132,8 @@ retry_write:
             k_msleep(1);
             retry_write_count++;
             if (retry_write_count >= 11) {
-                // LOG_ERR("Pressure sensor start command failed too many times!");
+                LOG_ERR("Pressure sensor start command failed too many times!, value: 0x%02x",
+                        value_buff[0]);
                 retry_write_count = 0;
                 pressure_sensor_value = 0;
                 continue;
@@ -153,7 +154,7 @@ retry:
         if (value_buff[0] == 0x60) {
             retry_count++;
             if (retry_count >= 5) {
-                // LOG_ERR("Pressure sensor read failed too many times!");
+                LOG_ERR("Pressure sensor read failed too many times!");
                 retry_count = 0;
                 continue;
                 pressure_sensor_value = 0;
