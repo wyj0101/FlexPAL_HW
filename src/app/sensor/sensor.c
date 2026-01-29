@@ -49,21 +49,27 @@ static void sensor_handle(void *arug0, void *arug1, void *arug2)
     {
         if (!calibration_ing) {
             LDC161x_read_value(0, &ldc_value);
-            ldc_length = 35.0 - (((g_ldc_max_value - ldc_value) / 46600481.0f) * 25.0);
-            ldc_length < 0 ? (ldc_length = 35) : ldc_length;
-            k_sleep(K_MSEC(50));
-        }   
-        
+            // ldc_length = 30.0 - (((g_ldc_max_value - ldc_value) / 46600481.0f) * 25.0);
+            // ldc_length < 0 ? (ldc_length = 35) : ldc_length;
+            int64_t diff = (int64_t)g_ldc_max_value - (int64_t)ldc_value;  // 允许负
+            float ratio = (float)diff / 46600481.0f;
+            ldc_length = 30.0f - ratio * 25.0f;   // diff<0 => length>30 (外插)
+            if (ldc_length > 35.0f) ldc_length = 35.0f;
+        }
+
+        k_sleep(K_MSEC(100));  /* Send telemetry every 100ms instead of 50ms */
+
         battery_value = (((sys_adc_read(ADC_CHANNEL_BAT) * 2) / 1000.0f) - 2.8) / 1.40f * 100.0f;
         memset(&imu_value, 0, sizeof(imu_value));
         get_imu_value(&imu_value);
 
         memset(udp_send_buff, 0, sizeof(udp_send_buff));
-        udp_send_buff[0] = device_id;
-        memcpy(&udp_send_buff[1], &ldc_length, sizeof(ldc_length));
-        memcpy(&udp_send_buff[5], &imu_value, 24);
-        memcpy(&udp_send_buff[29], &pressure_sensor_value, sizeof(pressure_sensor_value));
-        memcpy(&udp_send_buff[33], &battery_value, sizeof(battery_value));
+        udp_send_buff[0] = 0xBB;  /* Telemetry header */
+        udp_send_buff[1] = device_id;
+        memcpy(&udp_send_buff[2], &ldc_length, sizeof(ldc_length));
+        memcpy(&udp_send_buff[6], &imu_value, 24);
+        memcpy(&udp_send_buff[30], &pressure_sensor_value, sizeof(pressure_sensor_value));
+        memcpy(&udp_send_buff[34], &battery_value, sizeof(battery_value));
         
         esp_wifi_print_uart(udp_send_buff, sizeof(udp_send_buff));
         

@@ -110,6 +110,10 @@ static int esp_at_wifi_init(void)
 	wifi_config_t wifi_config;
 	server_config_t server_config;
 
+	/* Safety: ensure pump is off during WiFi init */
+	spring_pid_enable = false;
+	pump_ctrl_set(0);
+
 	flash_rw_wifi_get(&wifi_config);
 	flash_rw_server_get(&server_config);
 
@@ -119,7 +123,8 @@ static int esp_at_wifi_init(void)
 	snprintf(at_buff, sizeof(at_buff), "AT+CWJAP=\"%s\",\"%s\"\r\n", wifi_config.ssid, wifi_config.password);
 	ret = esp_at_send_cmd(at_buff, strlen(at_buff), 3000); // connect wifi
 	memset(at_buff, 0, sizeof(at_buff));
-	snprintf(at_buff, sizeof(at_buff), "AT+CIPSTART=\"UDP\",\"%s\",%d,%d,0\r\n", server_config.ipaddr, server_config.port, server_config.port);
+	/* UDP: send to port+1 (5006), receive on port (5005) */
+	snprintf(at_buff, sizeof(at_buff), "AT+CIPSTART=\"UDP\",\"%s\",%d,%d,0\r\n", server_config.ipaddr, server_config.port + 1, server_config.port);
 	ret = esp_at_send_cmd(at_buff, strlen(at_buff), 3000); // connect udp
 	ret = esp_at_send_cmd("AT+CIPMODE=1\r\n", sizeof("AT+CIPMODE=1\r\n"), 1000); // 使能透传
 	ret = esp_at_send_cmd("AT+CIPSEND\r\n", sizeof("AT+CIPSEND\r\n"), 1000); // 进入透传模式
@@ -169,27 +174,71 @@ static void wifi_handle(void *arug0, void *arug1, void *arug2)
 	esp_at_wifi_init();
 
 	sensor_init();
+
 	/* indefinitely wait for input from the user */
-	while (k_msgq_get(&wifi_msgq, &data_buff, K_FOREVER) == 0)
+	while (1)
 	{
-		if ((data_buff[0] != 1) && (data_buff[0] != 2)) {
-			LOG_ERR("Invalid UDP data");
+		/* Wait for data with 30 second timeout */
+		int ret = k_msgq_get(&wifi_msgq, &data_buff, K_SECONDS(30));
+
+		if (ret == -EAGAIN) {
+			/* Timeout: no command for 30 seconds */
+			LOG_WRN("No command for 30s, set PWM=0 and reconnect...");
+			spring_pid_enable = false;
+			pump_ctrl_set(0);
+
+			/* Exit transparent mode properly: 1s silence, +++, 1s silence */
+			k_msleep(1100);
+			esp_wifi_print_uart((uint8_t *)"+++", 3);
+			k_msleep(1100);
+
+			/* Clear queue and reconnect WiFi */
+			k_msgq_purge(&wifi_msgq);
+			esp_at_wifi_init();
 			continue;
 		}
 
-		if (data_buff[0] == 1) {
-			memcpy(&target_value, &data_buff[(1 + (device_id - 1)* 4)], sizeof(target_value));
+		/* Validate command header: must be 0xAA */
+		if (data_buff[0] != 0xAA) {
+			/* Not a valid command packet, skip */
+			continue;
+		}
+
+		/* Validate mode byte (byte 1): must be 1, 2, or 3 */
+		uint8_t mode = data_buff[1];
+		if (mode != 1 && mode != 2 && mode != 3) {
+			/* Invalid mode, skip */
+			continue;
+		}
+
+		if (mode == 1) {
+			memcpy(&target_value, &data_buff[(2 + (device_id - 1)* 4)], sizeof(target_value));
+			/* Sanity check: pressure target should be -101000 to 101000 */
+			if (target_value < -101000 || target_value > 101000) {
+				LOG_WRN("Mode1 invalid target=%d, skip", target_value);
+				continue;
+			}
 			pid_output = pid_calculate_output(pressure_sensor_value, target_value);
 			pump_ctrl_set(pid_output);
-		} else if (data_buff[0] == 2) {
-			target_value = data_buff[(1 + (device_id - 1)* 4)];
+		} else if (mode == 2) {
+			memcpy(&target_value, &data_buff[(2 + (device_id - 1)* 4)], sizeof(target_value));
+			/* Sanity check: PWM should be -100 to 100 */
+			if (target_value < -100 || target_value > 100) {
+				LOG_WRN("Mode2 invalid target=%d, skip", target_value);
+				continue;
+			}
 			pump_ctrl_set(target_value);
-		} else if (data_buff[0] == 3) {
-			memcpy(&target_value, &data_buff[(1 + (device_id - 1)* 4)], sizeof(target_value));
+		} else if (mode == 3) {
+			memcpy(&target_value, &data_buff[(2 + (device_id - 1)* 4)], sizeof(target_value));
+			/* Sanity check: spring target should be 0 to 35 */
+			if (target_value < 0 || target_value > 35) {
+				LOG_WRN("Mode3 invalid target=%d, skip", target_value);
+				continue;
+			}
 			if (!spring_pid_enable) {
 				spring_pid_pressure_value = spring_pid_calculate_output(ldc_length, target_value);
 				spring_pid_enable = true;
-			}	
+			}
 		}
 
 		if (sensor_debug_flag) {

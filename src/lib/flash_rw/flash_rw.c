@@ -589,7 +589,7 @@ int flash_rw_init(void)
 */
     if (memcmp(flash_rw_init_data.server_config.ipaddr, flash_init_data, sizeof(flash_rw_init_data.server_config.ipaddr)) == 0) {
         server_config_t server_config = {0};
-        memcpy(server_config.ipaddr, "192.168.137.1", sizeof(server_config.ipaddr));
+        memcpy(server_config.ipaddr, "192.168.137.255", sizeof(server_config.ipaddr));
         server_config.port = 5005;
         flash_rw_server_set(&server_config);
     }

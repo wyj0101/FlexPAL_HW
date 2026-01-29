@@ -24,7 +24,10 @@ int pump_ctrl_init()
 		return -1;
 	}
 	valve_gpio_init();
-	
+
+	// Initialize PWM to 0 (safe state)
+	pump_ctrl_set(0);
+
 	return 0;
 }
 int pump_ctrl_set(float value)
