@@ -13,3 +13,4 @@ fi
 #west build -d zet6/ -t menuconfig
 #west build -t menuconfig
 
+# west  build -p always -b esp32c3_devkitm ./FlexPAL_HW

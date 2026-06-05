@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.20.0)
 set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(FlexiAssistGlove)
+project(FlexPAL)
 
 target_include_directories(app PRIVATE ${ZEPHYR_BASE}/include/zephyr)
 
@@ -29,8 +29,8 @@ target_include_directories(app PRIVATE
 FILE(GLOB app src/app/*/*.c)
 FILE(GLOB lib src/lib/*/*.c)
 
-target_sources(app PRIVATE ${app})
-target_sources(app PRIVATE ${lib})
+# target_sources(app PRIVATE ${app})
+# target_sources(app PRIVATE ${lib})
 target_sources(app PRIVATE src/main.c)
 
 

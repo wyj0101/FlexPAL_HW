@@ -8,6 +8,7 @@
 #include <zephyr/drivers/gpio.h>
 
 #include "pump_ctrl.h"
+static const struct pwm_dt_spec pwm_led0 = PWM_DT_SPEC_GET(DT_ALIAS(pwm_led0));
 
 static const struct device *pump_dev = DEVICE_DT_GET(DT_NODELABEL(pump));
 static const struct device *gpiob_dev = DEVICE_DT_GET(DT_NODELABEL(gpiob));
